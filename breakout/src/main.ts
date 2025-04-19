@@ -1,4 +1,4 @@
-type BrickCell = { x: number, y: number; color: string };
+type BrickCell = { x: number, y: number; color: string, status: boolean };
 
 function drawBall(context: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
   context.beginPath();
@@ -30,13 +30,15 @@ function drawBricks(
   for (let i = 0; i < rows; i++) {
     let x = 45;
     for (let j = 0; j < cols; j++) {
-      bricksData[i][j].x = x;
-      bricksData[i][j].y = y;
-      context.beginPath();
-      context.rect(x, y, brickWidth, brickHeight);
-      context.fillStyle = bricksData[i][j].color;
-      context.fill();
-      context.closePath();
+      if (bricksData[i][j].status) {
+        bricksData[i][j].x = x;
+        bricksData[i][j].y = y;
+        context.beginPath();
+        context.rect(x, y, brickWidth, brickHeight);
+        context.fillStyle = bricksData[i][j].color;
+        context.fill();
+        context.closePath();
+      }
       x += (brickGutter + brickWidth);
     }
     y += brickHeight + brickGutter;
@@ -91,7 +93,8 @@ function init() {
       bricksData[i][j] = {
         x: 0,
         y: 0,
-        color: BRICK_COLOR
+        color: BRICK_COLOR,
+        status: true
       }
     }
   }
@@ -132,6 +135,22 @@ function init() {
         paddleX = canvasWidth - paddleWidth;
       } else {
         paddleX += 7;
+      }
+    }
+
+    // brick collision detection
+    for (let i = 0; i < brickRows; i++) {
+      for (let j = 0; j < brickCols; j++) {
+        let brick = bricksData[i][j];
+
+        if (brick.status) {
+          // check collision here
+          if (ballX > brick.x && ballX < brick.x + brickWidth && ballY > brick.y && ballY < brick.y + brickHeight) {
+            // collision
+            brick.status = false;
+            dy = -dy;
+          }
+        }
       }
     }
   }, 10);
