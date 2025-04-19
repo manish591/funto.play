@@ -1,17 +1,46 @@
-function drawBall(context: CanvasRenderingContext2D, x: number, y: number, radius: number) {
+type BrickCell = { x: number, y: number; color: string };
+
+function drawBall(context: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
   context.beginPath();
   context.arc(x, y, radius, 0, Math.PI * 2, false)
-  context.fillStyle = "black";
+  context.fillStyle = color;
   context.fill()
   context.closePath()
 }
 
-function drawPaddle(context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+function drawPaddle(context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string) {
   context.beginPath();
   context.rect(x, y, w, h);
-  context.fillStyle = "blue";
+  context.fillStyle = color;
   context.fill();
   context.closePath();
+}
+
+function drawBricks(
+  context: CanvasRenderingContext2D,
+  brickWidth: number,
+  brickHeight: number,
+  brickGutter: number,
+  rows: number,
+  cols: number,
+  bricksData: BrickCell[][]
+) {
+  let y = 20;
+
+  for (let i = 0; i < rows; i++) {
+    let x = 45;
+    for (let j = 0; j < cols; j++) {
+      bricksData[i][j].x = x;
+      bricksData[i][j].y = y;
+      context.beginPath();
+      context.rect(x, y, brickWidth, brickHeight);
+      context.fillStyle = bricksData[i][j].color;
+      context.fill();
+      context.closePath();
+      x += (brickGutter + brickWidth);
+    }
+    y += brickHeight + brickGutter;
+  }
 }
 
 function init() {
@@ -22,8 +51,13 @@ function init() {
 
   // canvas
   let context = canvas.getContext("2d") as CanvasRenderingContext2D;
-  let canvasWidth = 800;
-  let canvasHeight = 500;
+  let canvasWidth = canvas.width;
+  let canvasHeight = canvas.height;
+
+  // colors
+  const BALL_COLOR = "black";
+  const BRICK_COLOR = "red";
+  const PADDLE_COLOR = "red";
 
   // ball
   let ballRadius = 10;
@@ -34,7 +68,7 @@ function init() {
 
   // paddle
   let paddleWidth = 100;
-  let paddleHeight = 10;
+  let paddleHeight = 15;
   let paddleX = (canvasWidth - paddleWidth) / 2;
   let paddleY = canvasHeight - paddleHeight;
   let leftPressed = false;
@@ -43,10 +77,31 @@ function init() {
   // game
   let timerID = 0;
 
+  // brick define
+  let brickWidth = 80;
+  let brickHeight = 30;
+  let brickGutter = 10;
+  let brickRows = 4;
+  let brickCols = 8;
+  let bricksData: BrickCell[][] = [];
+
+  for (let i = 0; i < brickRows; i++) {
+    bricksData[i] = [];
+    for (let j = 0; j < brickCols; j++) {
+      bricksData[i][j] = {
+        x: 0,
+        y: 0,
+        color: BRICK_COLOR
+      }
+    }
+  }
+
+
   timerID = setInterval(() => {
     context.clearRect(0, 0, canvas.width, canvas.height);
-    drawBall(context, ballX, ballY, ballRadius);
-    drawPaddle(context, paddleX, paddleY, paddleWidth, paddleHeight);
+    drawBall(context, ballX, ballY, ballRadius, BALL_COLOR);
+    drawPaddle(context, paddleX, paddleY, paddleWidth, paddleHeight, PADDLE_COLOR);
+    drawBricks(context, brickWidth, brickHeight, brickGutter, brickRows, brickCols, bricksData);
     ballX += dx;
     ballY += dy;
 
